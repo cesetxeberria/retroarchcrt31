@@ -1,0 +1,96 @@
+Subject: [PATCH 1/2] added new boolean "interlaced". If it's false and height is lower than 448, the double vertical and horizontal resolutions
+
+---
+ gfx/video_crt_switch.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/gfx/video_crt_switch.c b/gfx/video_crt_switch.c
+index 5e1352b424..fd90662b8d 100644
+--- a/gfx/video_crt_switch.c
++++ b/gfx/video_crt_switch.c
+@@ -201,6 +201,15 @@ void crt_switch_res_core(unsigned width, unsigned height,
+       float hz, unsigned crt_mode,
+       int crt_switch_center_adjust, int monitor_index, bool dynamic)
+ {
++
++   static bool interlaced = false;
++
++   if (!interlaced && height < 448)
++   {
++      height = height * 2;
++      width = width * 2;
++   }
++
+    videocrt_switch_t *p_switch = &crt_switch_st;
+ 
+    /* ra_core_hz float passed from within
+-- 
+2.20.1
+
+
+Subject: [PATCH 2/2] added new boolean "interlaced". If it's false create progressive modelines for every resolution. If it's true create interlaced modelines for high resolutions
+
+---
+ gfx/display_servers/dispserv_x11.c | 15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
+
+diff --git a/gfx/display_servers/dispserv_x11.c b/gfx/display_servers/dispserv_x11.c
+index 7fbfc1510c..03b6a28033 100644
+--- a/gfx/display_servers/dispserv_x11.c
++++ b/gfx/display_servers/dispserv_x11.c
+@@ -43,6 +43,7 @@
+ static char xrandr[1024]        = {0};
+ static char crt_name[16]        = {0};
+ static int crt_name_id          = 0;
++static bool interlaced          = false;
+ static bool crt_en              = false;
+ static unsigned crt_id          = 20;
+ static char orig_output[256]    = {0};
+@@ -102,7 +103,7 @@ static void x11_display_server_destroy(void *data)
+    dispserv_x11_t *dispserv = (dispserv_x11_t*)data;
+ 
+ #ifdef HAVE_XRANDR
+-   if (crt_en)
++   if (crt_en && interlaced)
+    {
+       snprintf(xrandr, sizeof(xrandr),
+             "xrandr --newmode 700x480_59.94 13.849698 700 742 801 867 480 490 496 533 interlace -hsync -vsync");
+@@ -239,21 +240,21 @@ static bool x11_display_server_set_resolution(void *data,
+ 
+    vfp = height + ((vmax - height) / 2) - pdefault;
+ 
+-   if (height < 300)
++   if (!interlaced)
+       vsp = vfp + 3; /* needs to be 3 for progressive */
+-   if (height > 300)
++   if (height > 300 && interlaced)
+       vsp = vfp + 6; /* needs to be 6 for interlaced */
+ 
+    vbp = vmax;
+ 
+-   if (height < 300)
++   if (!interlaced)
+       pixel_clock = (hmax * vmax * hz) / 1000000;
+-   if (height > 300)
++   if (height > 300 && interlaced)
+       pixel_clock = ((hmax * vmax * hz) / 1000000) / 2;
+    /* above code is the modeline generator */
+ 
+    /* create interlaced newmode from modline variables */
+-   if (height < 300)
++   if (!interlaced)
+    {
+       snprintf(xrandr, sizeof(xrandr),
+             "xrandr --newmode \"%s_%dx%d_%0.2f\" %f %d %d %d %d %d %d %d %d -hsync -vsync",
+@@ -262,7 +263,7 @@ static bool x11_display_server_set_resolution(void *data,
+    }
+ 
+    /* create interlaced newmode from modline variables */
+-   if (height > 300)
++   if (height > 300 && interlaced)
+    {
+       snprintf(xrandr, sizeof(xrandr),
+             "xrandr --newmode \"%s_%dx%d_%0.2f\" %f %d %d %d %d %d %d %d %d interlace -hsync -vsync",
+-- 
+2.20.1
+
