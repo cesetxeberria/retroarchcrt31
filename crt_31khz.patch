@@ -1,9 +1,10 @@
 Subject: [PATCH] Patches to run on a 31khz CRT. Adds a new boolean "interlaced". If true resolutions are doubled and interlaced modes are never used
+
 ---
  gfx/display_servers/dispserv_x11.c | 15 ++++++++-------
- gfx/video_crt_switch.c             |  9 +++++++++
- retroarch.cfg                      | 23 +++++++++++++++++++++++
- 3 files changed, 40 insertions(+), 7 deletions(-)
+ gfx/video_crt_switch.c             | 14 ++++++++++++++
+ retroarch.cfg                      | 10 ++++++++++
+ 3 files changed, 32 insertions(+), 7 deletions(-)
 
 diff --git a/gfx/display_servers/dispserv_x11.c b/gfx/display_servers/dispserv_x11.c
 index 7fbfc1510c..03b6a28033 100644
@@ -63,10 +64,10 @@ index 7fbfc1510c..03b6a28033 100644
        snprintf(xrandr, sizeof(xrandr),
              "xrandr --newmode \"%s_%dx%d_%0.2f\" %f %d %d %d %d %d %d %d %d interlace -hsync -vsync",
 diff --git a/gfx/video_crt_switch.c b/gfx/video_crt_switch.c
-index 5e1352b424..fd90662b8d 100644
+index 5e1352b424..0c5594d98d 100644
 --- a/gfx/video_crt_switch.c
 +++ b/gfx/video_crt_switch.c
-@@ -201,6 +201,15 @@ void crt_switch_res_core(unsigned width, unsigned height,
+@@ -201,6 +201,20 @@ void crt_switch_res_core(unsigned width, unsigned height,
        float hz, unsigned crt_mode,
        int crt_switch_center_adjust, int monitor_index, bool dynamic)
  {
@@ -79,40 +80,32 @@ index 5e1352b424..fd90662b8d 100644
 +      width = width * 2;
 +   }
 +
++   if (!interlaced && height >= 448 && width <=320)
++   {
++      width = width * 2;
++   }
++
     videocrt_switch_t *p_switch = &crt_switch_st;
  
     /* ra_core_hz float passed from within
 diff --git a/retroarch.cfg b/retroarch.cfg
-index 2f20ebe700..be08491858 100644
+index 2f20ebe700..e7f0f1cd76 100644
 --- a/retroarch.cfg
 +++ b/retroarch.cfg
-@@ -949,3 +949,26 @@
+@@ -949,3 +949,13 @@
  # Enable device vibration for supported cores
  # enable_device_vibration = false
  
 +#########################
 +#custom retroarch settings
 +#########################
-+#custom retroarch settings ansible
 +menu_driver = "rgui"
 +video_fullscreen = "true"
-+#video_fullscreen_x = "700"
-+#video_fullscreen_y = "480"
-+#video_fullscreen_y = "240"
-+#video_windowed_fullscreen = "false"
-+#aspect_ratio_index = "23"
-+#custom_viewport_width = "700"
-+#custom_viewport_height = "480"
-+#custom_viewport_height = "240"
 +menu_show_advanced_settings = "true"
-+crt_switch_center_adjust = "0"
-+#0=no 1=15khz 2=31khz
++#0=no 1=15khz 2=31khz With my patch 1=doubled
 +crt_switch_resolution = "1"
-+#super=0 native #super=1 dynamic
++#0=native 1=dynamic
 +crt_switch_resolution_super = "0"
-+crt_switch_resolution_use_custom_refresh_rate = "false"
-+#custom retroarch settings ansible
-+
 -- 
 2.25.1
 
