@@ -1,5 +1,4 @@
-Subject: [PATCH] 31khz patches. Add "interlaced" boolean. If false double the resolutions and don't use interlaced.
-
+Subject: [PATCH] Patches to run on a 31khz CRT. Adds a new boolean "interlaced". If true resolutions are doubled and interlaced modes are never used
 ---
  gfx/display_servers/dispserv_x11.c | 15 ++++++++-------
  gfx/video_crt_switch.c             |  9 +++++++++
@@ -97,10 +96,10 @@ index 2f20ebe700..be08491858 100644
 +#custom retroarch settings ansible
 +menu_driver = "rgui"
 +video_fullscreen = "true"
-+video_fullscreen_x = "700"
-+video_fullscreen_y = "480"
++#video_fullscreen_x = "700"
++#video_fullscreen_y = "480"
 +#video_fullscreen_y = "240"
-+video_windowed_fullscreen = "false"
++#video_windowed_fullscreen = "false"
 +#aspect_ratio_index = "23"
 +#custom_viewport_width = "700"
 +#custom_viewport_height = "480"
@@ -116,3 +115,4 @@ index 2f20ebe700..be08491858 100644
 +
 -- 
 2.25.1
+
