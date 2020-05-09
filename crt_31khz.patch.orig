@@ -1,16 +1,12 @@
-From 22855eec3c54cd4a0b578630bcc47de0d62e27fa Mon Sep 17 00:00:00 2001
-From: Cesar Etxeberria <cesetxeberria@lizarraikastola.com>
-Date: Sat, 9 May 2020 22:00:49 +0200
-Subject: [PATCH] blah
-
+Subject: [PATCH] Patches to run on a 31khz CRT. Adds a new boolean "interlaced". If true resolutions are doubled and interlaced modes are never used
 ---
- gfx/display_servers/dispserv_x11.c | 47 +++++++++++++++++++-----------
- gfx/video_crt_switch.c             | 14 +++++++++
- retroarch.cfg                      | 10 +++++++
- 3 files changed, 54 insertions(+), 17 deletions(-)
+ gfx/display_servers/dispserv_x11.c | 23 ++++++++++++++++-------
+ gfx/video_crt_switch.c             | 14 ++++++++++++++
+ retroarch.cfg                      | 10 ++++++++++
+ 3 files changed, 40 insertions(+), 7 deletions(-)
 
 diff --git a/gfx/display_servers/dispserv_x11.c b/gfx/display_servers/dispserv_x11.c
-index 7fbfc1510c..6df3affca8 100644
+index 7fbfc1510c..51817d84f0 100644
 --- a/gfx/display_servers/dispserv_x11.c
 +++ b/gfx/display_servers/dispserv_x11.c
 @@ -43,6 +43,7 @@
@@ -21,48 +17,31 @@ index 7fbfc1510c..6df3affca8 100644
  static bool crt_en              = false;
  static unsigned crt_id          = 20;
  static char orig_output[256]    = {0};
-@@ -104,17 +105,29 @@ static void x11_display_server_destroy(void *data)
+@@ -102,7 +103,7 @@ static void x11_display_server_destroy(void *data)
+    dispserv_x11_t *dispserv = (dispserv_x11_t*)data;
+ 
  #ifdef HAVE_XRANDR
-    if (crt_en)
+-   if (crt_en)
++   if (crt_en && interlaced)
     {
--      snprintf(xrandr, sizeof(xrandr),
--            "xrandr --newmode 700x480_59.94 13.849698 700 742 801 867 480 490 496 533 interlace -hsync -vsync");
--      system(xrandr);
--      snprintf(xrandr, sizeof(xrandr),
--            "xrandr --addmode \"%s\" 700x480_59.94",
--            orig_output);
--      system(xrandr);
--      snprintf(xrandr, sizeof(xrandr),
--            "xrandr --output \"%s\" --mode 700x480_59.94",
--            orig_output);
--      system(xrandr);
-+      if (interlaced)
-+      {
-+        snprintf(xrandr, sizeof(xrandr),
-+              "xrandr --newmode 700x480_59.94 13.849698 700 742 801 867 480 490 496 533 interlace -hsync -vsync");
-+        system(xrandr);
-+        snprintf(xrandr, sizeof(xrandr),
-+              "xrandr --addmode \"%s\" 700x480_59.94",
-+              orig_output);
-+        system(xrandr);
-+        snprintf(xrandr, sizeof(xrandr),
-+              "xrandr --output \"%s\" --mode 700x480_59.94",
-+              orig_output);
-+        system(xrandr);
-+      }
-+
-+      else //This is a pc monitor, can autoconfigure
-+      {
-+        snprintf(xrandr, sizeof(xrandr),
-+              "xrandr --output \"%s\" --auto",
-+              orig_output);
-+        system(xrandr);
-+      }
-+
        snprintf(xrandr, sizeof(xrandr),
-             "xrandr --delmode \"%s\" \"%s\"",
-             orig_output, old_mode);
-@@ -239,21 +252,21 @@ static bool x11_display_server_set_resolution(void *data,
+             "xrandr --newmode 700x480_59.94 13.849698 700 742 801 867 480 490 496 533 interlace -hsync -vsync");
+@@ -126,6 +127,14 @@ static void x11_display_server_destroy(void *data)
+    }
+ #endif
+ 
++   if (crt_en && !interlaced)
++   {
++      snprintf(xrandr, sizeof(xrandr),
++            "xrandr --output \"%s\" --auto",
++            orig_output);
++      system(xrandr);
++   }
++
+    if (dispserv)
+       free(dispserv);
+ }
+@@ -239,21 +248,21 @@ static bool x11_display_server_set_resolution(void *data,
  
     vfp = height + ((vmax - height) / 2) - pdefault;
  
@@ -89,7 +68,7 @@ index 7fbfc1510c..6df3affca8 100644
     {
        snprintf(xrandr, sizeof(xrandr),
              "xrandr --newmode \"%s_%dx%d_%0.2f\" %f %d %d %d %d %d %d %d %d -hsync -vsync",
-@@ -262,7 +275,7 @@ static bool x11_display_server_set_resolution(void *data,
+@@ -262,7 +271,7 @@ static bool x11_display_server_set_resolution(void *data,
     }
  
     /* create interlaced newmode from modline variables */
@@ -142,5 +121,4 @@ index 2f20ebe700..e7f0f1cd76 100644
 +#0=native 1=dynamic
 +crt_switch_resolution_super = "0"
 -- 
-2.25.1
-
+2.20.1
