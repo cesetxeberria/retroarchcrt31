@@ -1,7 +1,4 @@
-From 0770811eb1ff1925086d6571fc5283c1dd3460f2 Mon Sep 17 00:00:00 2001
-From: Cesar Etxeberria <cesetxeberria@lizarraikastola.com>
-Date: Sat, 9 May 2020 10:22:09 +0200
-Subject: [PATCH] 31khz patches
+Subject: [PATCH] 31khz patches. Add "interlaced" boolean. If false double the resolutions and don't use interlaced.
 
 ---
  gfx/display_servers/dispserv_x11.c | 15 ++++++++-------
@@ -119,4 +116,3 @@ index 2f20ebe700..be08491858 100644
 +
 -- 
 2.25.1
-
