@@ -1,38 +1,13 @@
-Subject: [PATCH 1/2] added new boolean "interlaced". If it's false and height is lower than 448, the double vertical and horizontal resolutions
-
----
- gfx/video_crt_switch.c | 9 +++++++++
- 1 file changed, 9 insertions(+)
-
-diff --git a/gfx/video_crt_switch.c b/gfx/video_crt_switch.c
-index 5e1352b424..fd90662b8d 100644
---- a/gfx/video_crt_switch.c
-+++ b/gfx/video_crt_switch.c
-@@ -201,6 +201,15 @@ void crt_switch_res_core(unsigned width, unsigned height,
-       float hz, unsigned crt_mode,
-       int crt_switch_center_adjust, int monitor_index, bool dynamic)
- {
-+
-+   static bool interlaced = false;
-+
-+   if (!interlaced && height < 448)
-+   {
-+      height = height * 2;
-+      width = width * 2;
-+   }
-+
-    videocrt_switch_t *p_switch = &crt_switch_st;
- 
-    /* ra_core_hz float passed from within
--- 
-2.20.1
-
-
-Subject: [PATCH 2/2] added new boolean "interlaced". If it's false create progressive modelines for every resolution. If it's true create interlaced modelines for high resolutions
+From 0770811eb1ff1925086d6571fc5283c1dd3460f2 Mon Sep 17 00:00:00 2001
+From: Cesar Etxeberria <cesetxeberria@lizarraikastola.com>
+Date: Sat, 9 May 2020 10:22:09 +0200
+Subject: [PATCH] 31khz patches
 
 ---
  gfx/display_servers/dispserv_x11.c | 15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ gfx/video_crt_switch.c             |  9 +++++++++
+ retroarch.cfg                      | 23 +++++++++++++++++++++++
+ 3 files changed, 40 insertions(+), 7 deletions(-)
 
 diff --git a/gfx/display_servers/dispserv_x11.c b/gfx/display_servers/dispserv_x11.c
 index 7fbfc1510c..03b6a28033 100644
@@ -91,6 +66,57 @@ index 7fbfc1510c..03b6a28033 100644
     {
        snprintf(xrandr, sizeof(xrandr),
              "xrandr --newmode \"%s_%dx%d_%0.2f\" %f %d %d %d %d %d %d %d %d interlace -hsync -vsync",
+diff --git a/gfx/video_crt_switch.c b/gfx/video_crt_switch.c
+index 5e1352b424..fd90662b8d 100644
+--- a/gfx/video_crt_switch.c
++++ b/gfx/video_crt_switch.c
+@@ -201,6 +201,15 @@ void crt_switch_res_core(unsigned width, unsigned height,
+       float hz, unsigned crt_mode,
+       int crt_switch_center_adjust, int monitor_index, bool dynamic)
+ {
++
++   static bool interlaced = false;
++
++   if (!interlaced && height < 448)
++   {
++      height = height * 2;
++      width = width * 2;
++   }
++
+    videocrt_switch_t *p_switch = &crt_switch_st;
+ 
+    /* ra_core_hz float passed from within
+diff --git a/retroarch.cfg b/retroarch.cfg
+index 2f20ebe700..be08491858 100644
+--- a/retroarch.cfg
++++ b/retroarch.cfg
+@@ -949,3 +949,26 @@
+ # Enable device vibration for supported cores
+ # enable_device_vibration = false
+ 
++#########################
++#custom retroarch settings
++#########################
++#custom retroarch settings ansible
++menu_driver = "rgui"
++video_fullscreen = "true"
++video_fullscreen_x = "700"
++video_fullscreen_y = "480"
++#video_fullscreen_y = "240"
++video_windowed_fullscreen = "false"
++#aspect_ratio_index = "23"
++#custom_viewport_width = "700"
++#custom_viewport_height = "480"
++#custom_viewport_height = "240"
++menu_show_advanced_settings = "true"
++crt_switch_center_adjust = "0"
++#0=no 1=15khz 2=31khz
++crt_switch_resolution = "1"
++#super=0 native #super=1 dynamic
++crt_switch_resolution_super = "0"
++crt_switch_resolution_use_custom_refresh_rate = "false"
++#custom retroarch settings ansible
++
 -- 
-2.20.1
+2.25.1
 
