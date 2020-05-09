@@ -1,13 +1,12 @@
 Subject: [PATCH] Patches to run on a 31khz CRT. Adds a new boolean "interlaced". If true resolutions are doubled and interlaced modes are never used
-
 ---
- gfx/display_servers/dispserv_x11.c | 15 ++++++++-------
+ gfx/display_servers/dispserv_x11.c | 23 ++++++++++++++++-------
  gfx/video_crt_switch.c             | 14 ++++++++++++++
  retroarch.cfg                      | 10 ++++++++++
- 3 files changed, 32 insertions(+), 7 deletions(-)
+ 3 files changed, 40 insertions(+), 7 deletions(-)
 
 diff --git a/gfx/display_servers/dispserv_x11.c b/gfx/display_servers/dispserv_x11.c
-index 7fbfc1510c..03b6a28033 100644
+index 7fbfc1510c..51817d84f0 100644
 --- a/gfx/display_servers/dispserv_x11.c
 +++ b/gfx/display_servers/dispserv_x11.c
 @@ -43,6 +43,7 @@
@@ -27,7 +26,22 @@ index 7fbfc1510c..03b6a28033 100644
     {
        snprintf(xrandr, sizeof(xrandr),
              "xrandr --newmode 700x480_59.94 13.849698 700 742 801 867 480 490 496 533 interlace -hsync -vsync");
-@@ -239,21 +240,21 @@ static bool x11_display_server_set_resolution(void *data,
+@@ -126,6 +127,14 @@ static void x11_display_server_destroy(void *data)
+    }
+ #endif
+ 
++   if (crt_en && !interlaced)
++   {
++      snprintf(xrandr, sizeof(xrandr),
++            "xrandr --output \"%s\" --auto",
++            orig_output);
++      system(xrandr);
++   }
++
+    if (dispserv)
+       free(dispserv);
+ }
+@@ -239,21 +248,21 @@ static bool x11_display_server_set_resolution(void *data,
  
     vfp = height + ((vmax - height) / 2) - pdefault;
  
@@ -54,7 +68,7 @@ index 7fbfc1510c..03b6a28033 100644
     {
        snprintf(xrandr, sizeof(xrandr),
              "xrandr --newmode \"%s_%dx%d_%0.2f\" %f %d %d %d %d %d %d %d %d -hsync -vsync",
-@@ -262,7 +263,7 @@ static bool x11_display_server_set_resolution(void *data,
+@@ -262,7 +271,7 @@ static bool x11_display_server_set_resolution(void *data,
     }
  
     /* create interlaced newmode from modline variables */
@@ -107,5 +121,4 @@ index 2f20ebe700..e7f0f1cd76 100644
 +#0=native 1=dynamic
 +crt_switch_resolution_super = "0"
 -- 
-2.25.1
-
+2.20.1
