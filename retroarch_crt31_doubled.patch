@@ -13,7 +13,7 @@ index 7fbfc1510c..6933782da0 100644
  static char xrandr[1024]        = {0};
  static char crt_name[16]        = {0};
  static int crt_name_id          = 0;
-+static bool interlaced          = false;  //value is hardcoded. Maybe it can be added to retroarch.cfg options...
++static bool interlaced          = false;  //Value is hardcoded. Maybe it can be added to retroarch.cfg options...
  static bool crt_en              = false;
  static unsigned crt_id          = 20;
  static char orig_output[256]    = {0};
@@ -104,7 +104,7 @@ index 5e1352b424..ce7f3ed367 100644
        int crt_switch_center_adjust, int monitor_index, bool dynamic)
  {
 +
-+   static bool interlaced = false;
++   static bool interlaced = false;  //Value is hardcoded. Maybe it can be added to retroarch.cfg options...
 +
 +   if (!interlaced && height < 448)
 +   {
