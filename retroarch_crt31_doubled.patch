@@ -1,23 +1,19 @@
-From 22855eec3c54cd4a0b578630bcc47de0d62e27fa Mon Sep 17 00:00:00 2001
-From: Cesar Etxeberria <cesetxeberria@lizarraikastola.com>
-Date: Sat, 9 May 2020 22:00:49 +0200
-Subject: [PATCH] blah
-
+Subject: This patch sets a new boolean "interlaced". If true 15khz progressive modes are doubled and no interlaced modes are used.
 ---
- gfx/display_servers/dispserv_x11.c | 47 +++++++++++++++++++-----------
+ gfx/display_servers/dispserv_x11.c | 49 +++++++++++++++++++-----------
  gfx/video_crt_switch.c             | 14 +++++++++
- retroarch.cfg                      | 10 +++++++
- 3 files changed, 54 insertions(+), 17 deletions(-)
+ retroarch.cfg                      | 10 ++++++
+ 3 files changed, 55 insertions(+), 18 deletions(-)
 
 diff --git a/gfx/display_servers/dispserv_x11.c b/gfx/display_servers/dispserv_x11.c
-index 7fbfc1510c..6df3affca8 100644
+index 7fbfc1510c..6933782da0 100644
 --- a/gfx/display_servers/dispserv_x11.c
 +++ b/gfx/display_servers/dispserv_x11.c
 @@ -43,6 +43,7 @@
  static char xrandr[1024]        = {0};
  static char crt_name[16]        = {0};
  static int crt_name_id          = 0;
-+static bool interlaced          = false;
++static bool interlaced          = false;  //value is hardcoded. Maybe could be added to retroarch.cfg options...
  static bool crt_en              = false;
  static unsigned crt_id          = 20;
  static char orig_output[256]    = {0};
@@ -36,7 +32,7 @@ index 7fbfc1510c..6df3affca8 100644
 -            "xrandr --output \"%s\" --mode 700x480_59.94",
 -            orig_output);
 -      system(xrandr);
-+      if (interlaced)
++      if (interlaced)  //This is a pc monitor, don't set an interlaced modeline for desktop at exit.
 +      {
 +        snprintf(xrandr, sizeof(xrandr),
 +              "xrandr --newmode 700x480_59.94 13.849698 700 742 801 867 480 490 496 533 interlace -hsync -vsync");
@@ -51,7 +47,7 @@ index 7fbfc1510c..6df3affca8 100644
 +        system(xrandr);
 +      }
 +
-+      else //This is a pc monitor, can autoconfigure
++      else //This is a pc monitor, can autoconfigure itself at exit.
 +      {
 +        snprintf(xrandr, sizeof(xrandr),
 +              "xrandr --output \"%s\" --auto",
@@ -67,10 +63,10 @@ index 7fbfc1510c..6df3affca8 100644
     vfp = height + ((vmax - height) / 2) - pdefault;
  
 -   if (height < 300)
-+   if (!interlaced)
++   if (!interlaced)  //All modelines are progressive
        vsp = vfp + 3; /* needs to be 3 for progressive */
 -   if (height > 300)
-+   if (height > 300 && interlaced)
++   if (height > 300 && interlaced) //Only use interlaced if variable is true
        vsp = vfp + 6; /* needs to be 6 for interlaced */
  
     vbp = vmax;
@@ -83,8 +79,9 @@ index 7fbfc1510c..6df3affca8 100644
        pixel_clock = ((hmax * vmax * hz) / 1000000) / 2;
     /* above code is the modeline generator */
  
-    /* create interlaced newmode from modline variables */
+-   /* create interlaced newmode from modline variables */
 -   if (height < 300)
++   /* create newmode from modline variables */
 +   if (!interlaced)
     {
        snprintf(xrandr, sizeof(xrandr),
@@ -99,7 +96,7 @@ index 7fbfc1510c..6df3affca8 100644
        snprintf(xrandr, sizeof(xrandr),
              "xrandr --newmode \"%s_%dx%d_%0.2f\" %f %d %d %d %d %d %d %d %d interlace -hsync -vsync",
 diff --git a/gfx/video_crt_switch.c b/gfx/video_crt_switch.c
-index 5e1352b424..0c5594d98d 100644
+index 5e1352b424..ce7f3ed367 100644
 --- a/gfx/video_crt_switch.c
 +++ b/gfx/video_crt_switch.c
 @@ -201,6 +201,20 @@ void crt_switch_res_core(unsigned width, unsigned height,
@@ -115,7 +112,7 @@ index 5e1352b424..0c5594d98d 100644
 +      width = width * 2;
 +   }
 +
-+   if (!interlaced && height >= 448 && width <=320)
++   if (!interlaced && height >= 448 && width <=320)  // Sonic2 in two player mode for example.
 +   {
 +      width = width * 2;
 +   }
@@ -142,5 +139,5 @@ index 2f20ebe700..e7f0f1cd76 100644
 +#0=native 1=dynamic
 +crt_switch_resolution_super = "0"
 -- 
-2.25.1
+2.20.1
 
