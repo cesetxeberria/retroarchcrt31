@@ -13,7 +13,7 @@ index 7fbfc1510c..6933782da0 100644
  static char xrandr[1024]        = {0};
  static char crt_name[16]        = {0};
  static int crt_name_id          = 0;
-+static bool interlaced          = false;  //value is hardcoded. Maybe could be added to retroarch.cfg options...
++static bool interlaced          = false;  //value is hardcoded. Maybe it can be added to retroarch.cfg options...
  static bool crt_en              = false;
  static unsigned crt_id          = 20;
  static char orig_output[256]    = {0};
@@ -32,7 +32,7 @@ index 7fbfc1510c..6933782da0 100644
 -            "xrandr --output \"%s\" --mode 700x480_59.94",
 -            orig_output);
 -      system(xrandr);
-+      if (interlaced)  //This is a pc monitor, don't set an interlaced modeline for desktop at exit.
++      if (interlaced)  //This isn't a pc monitor, set an interlaced modeline for desktop at exit.
 +      {
 +        snprintf(xrandr, sizeof(xrandr),
 +              "xrandr --newmode 700x480_59.94 13.849698 700 742 801 867 480 490 496 533 interlace -hsync -vsync");
@@ -134,7 +134,7 @@ index 2f20ebe700..e7f0f1cd76 100644
 +menu_driver = "rgui"
 +video_fullscreen = "true"
 +menu_show_advanced_settings = "true"
-+#0=no 1=15khz 2=31khz With my patch 1=doubled
++#0=no 1=15khz 2=31khz With this patch 1=doubled
 +crt_switch_resolution = "1"
 +#0=native 1=dynamic
 +crt_switch_resolution_super = "0"
