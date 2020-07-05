@@ -2,11 +2,11 @@ Subject: This patch sets a new boolean "interlaced". If true 15khz progressive m
 ---
  gfx/display_servers/dispserv_x11.c | 49 +++++++++++++++++++-----------
  gfx/video_crt_switch.c             | 14 +++++++++
- retroarch.cfg                      | 10 ++++++
- 3 files changed, 55 insertions(+), 18 deletions(-)
+ retroarch.cfg                      | 11 +++++++
+ 3 files changed, 56 insertions(+), 18 deletions(-)
 
 diff --git a/gfx/display_servers/dispserv_x11.c b/gfx/display_servers/dispserv_x11.c
-index 7fbfc1510c..6933782da0 100644
+index c37b84fb13..951171df83 100644
 --- a/gfx/display_servers/dispserv_x11.c
 +++ b/gfx/display_servers/dispserv_x11.c
 @@ -43,6 +43,7 @@
@@ -96,12 +96,12 @@ index 7fbfc1510c..6933782da0 100644
        snprintf(xrandr, sizeof(xrandr),
              "xrandr --newmode \"%s_%dx%d_%0.2f\" %f %d %d %d %d %d %d %d %d interlace -hsync -vsync",
 diff --git a/gfx/video_crt_switch.c b/gfx/video_crt_switch.c
-index 5e1352b424..ce7f3ed367 100644
+index 2e9ddaa960..3ae0a939f4 100644
 --- a/gfx/video_crt_switch.c
 +++ b/gfx/video_crt_switch.c
-@@ -201,6 +201,20 @@ void crt_switch_res_core(unsigned width, unsigned height,
-       float hz, unsigned crt_mode,
-       int crt_switch_center_adjust, int monitor_index, bool dynamic)
+@@ -198,6 +198,20 @@ void crt_switch_res_core(
+       int crt_switch_center_adjust,
+       int monitor_index, bool dynamic)
  {
 +
 +   static bool interlaced = false;  //Value is hardcoded. Maybe it can be added to retroarch.cfg options...
@@ -117,14 +117,14 @@ index 5e1352b424..ce7f3ed367 100644
 +      width = width * 2;
 +   }
 +
-    videocrt_switch_t *p_switch = &crt_switch_st;
- 
     /* ra_core_hz float passed from within
+     * video_driver_monitor_adjust_system_rates() */
+    if (width == 4)
 diff --git a/retroarch.cfg b/retroarch.cfg
-index 2f20ebe700..e7f0f1cd76 100644
+index bac9093d3e..c60920003c 100644
 --- a/retroarch.cfg
 +++ b/retroarch.cfg
-@@ -949,3 +949,13 @@
+@@ -961,3 +961,14 @@
  # Enable device vibration for supported cores
  # enable_device_vibration = false
  
@@ -138,6 +138,7 @@ index 2f20ebe700..e7f0f1cd76 100644
 +crt_switch_resolution = "1"
 +#0=native 1=dynamic
 +crt_switch_resolution_super = "0"
++
 -- 
 2.20.1
 
